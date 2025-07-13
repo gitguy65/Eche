@@ -156,7 +156,8 @@ public static class Game
 				NumberOfPickedSeeds = 0;
 				Board.Holes[hole] = 0;
 				currentPlayer.Score++;
-				break;
+                GameState.CheckGame();
+                break;
 			}
 			
 			if(NumberOfPickedSeeds == 1 && Board.Holes[hole] > 0)
