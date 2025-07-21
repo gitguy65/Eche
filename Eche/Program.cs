@@ -207,7 +207,7 @@ public static class GameState
 {
 	public static void CheckGame()
 	{
-		int hole = GamePlay.CurrentHole == 0 ? 1 : GamePlay.CurrentHole;
+		int hole = GamePlay.CurrentHole == 0 ? 11 : GamePlay.CurrentHole;
 		hole--;
 
         if (Board.Holes[hole] == 4)
