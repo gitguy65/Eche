@@ -6,8 +6,8 @@
 		Player PlayerOne = new Player(0);
 		Player PlayerTwo = new Player(1);
 		
-		Game.PlayerOne = PlayerOne;
-		Game.PlayerTwo = PlayerTwo;
+		GamePlay.PlayerOne = PlayerOne;
+		GamePlay.PlayerTwo = PlayerTwo;
 		
 		StartGame.Begin();
 	}
@@ -48,13 +48,14 @@ Enter '1' to select the top row or '2' to select the bottom row
 			{
 				if(startHole >= 0 && startHole < 6)
 				{
-                    Game.PlayGame(Game.PlayerOne, startHole);
+
+                    GamePlay.PlayGame(GamePlay.PlayerOne, startHole);
                 }
             }
 			else 
 			{
 				Console.WriteLine("Invalid move");
-                Game.PlayGame(Game.PlayerOne, startHole);
+                GamePlay.PlayGame(GamePlay.PlayerOne, startHole);
             }
 		}
 		
@@ -68,7 +69,7 @@ Enter '1' to select the top row or '2' to select the bottom row
 			{
 				if(startHole >= 6 && startHole < 12)
 				{
-                    Game.PlayGame(Game.PlayerTwo, startHole);
+                    GamePlay.PlayGame(GamePlay.PlayerTwo, startHole);
                 }
             }
         }
@@ -106,15 +107,17 @@ public class Player
 	}
 }
 
-public static class Game
+public static class GamePlay
 {
 	public static Player CurrentPlayer { get; set; }
 	public static Player PlayerOne { get; set; }
 	public static Player PlayerTwo { get; set; }
 	public static int NumberOfPickedSeeds { get; private set; }
+	public static int CurrentHole { get; set; }
 	
 	public static void PlayGame(Player currentPlayer, int hole)
 	{
+		CurrentHole = hole;
 		CurrentPlayer = currentPlayer;
 
 		NumberOfPickedSeeds = Board.Holes[hole];
@@ -122,6 +125,7 @@ public static class Game
 		if(NumberOfPickedSeeds == 0)
 		{
 			Console.WriteLine("Invalid move. Hole is empty");
+			// CurrentHole = null;
 			return;
 		}
 
@@ -150,34 +154,39 @@ public static class Game
 		while (NumberOfPickedSeeds > 0) 
 		{
 			hole++;
+            hole = hole == 12 ? 0 : hole;
+			CurrentHole = hole;
 
-			if (NumberOfPickedSeeds == 1 && Board.Holes[hole] == 3)
-			{
-				NumberOfPickedSeeds = 0;
+            if (NumberOfPickedSeeds == 1 && Board.Holes[hole] == 3)
+            {
+				currentPlayer.Score++; 
 				Board.Holes[hole] = 0;
-				currentPlayer.Score++;
+				NumberOfPickedSeeds = 0;
+
                 GameState.CheckGame();
+                GameState.DisplayBoard();
                 break;
 			}
-			
-			if(NumberOfPickedSeeds == 1 && Board.Holes[hole] > 0)
+			else if (NumberOfPickedSeeds == 1 && Board.Holes[hole] > 0)
 			{
 				NumberOfPickedSeeds = Board.Holes[hole] + 1;
-				Board.Holes[hole] = 0;
+				Board.Holes[hole] = 0; 
 			}
-		
-			if(hole == 11)
-				hole = 0;
-				
-			Board.Holes[hole]++;
-			NumberOfPickedSeeds--;
-			GameState.CheckGame();
-			Move(currentPlayer, NumberOfPickedSeeds, hole);
+
+			else
+			{
+                Board.Holes[hole]++;
+                NumberOfPickedSeeds--;
+            }
+
+            GameState.CheckGame();
+            GameState.DisplayBoard();
+            Move(currentPlayer, NumberOfPickedSeeds, hole);
 		}
 		
 		int newHole;
 		
-		if (currentPlayer.Index == PlayerTwo.Index)
+		if (currentPlayer.Index == PlayerOne.Index)
 		{
 			CurrentPlayer = PlayerTwo;
 			Console.WriteLine("PlayerTwo's turn, select a seeded hole from the top row");		
@@ -198,24 +207,37 @@ public static class GameState
 {
 	public static void CheckGame()
 	{
-		for(int i = 0; i < Board.Holes.Length; i++)
+		int hole = GamePlay.CurrentHole == 0 ? hole = 1 : hole = GamePlay.CurrentHole;
+		hole--;
+
+        if (Board.Holes[hole] == 4)
 		{
-			if(Board.Holes[i] == 4)
-			{
-				if(i >= 0 && i < 6)
-					Game.PlayerTwo.Score++;
-					
-				if(i >= 5 && i < 12)
-					Game.PlayerOne.Score++;
-			} 
-		}
-        ReprintBoardWithStats();
+            if (hole >= 0 && hole < 6)
+            {
+                GamePlay.PlayerOne.Score++;
+                Board.Holes[hole] = 0;
+            }
+            else
+            {
+                GamePlay.PlayerTwo.Score++;
+                Board.Holes[hole] = 0;
+            }
+        }  
     }
 
-    public static void ReprintBoardWithStats()
+    public static void DisplayBoard()
 	{
-        Console.WriteLine($"Current Player {Game.CurrentPlayer.Index}");
-        Console.WriteLine($"SeedCount {Game.NumberOfPickedSeeds}");
+        Console.WriteLine($@"
+Current Player: {GamePlay.CurrentPlayer.Index}
+Seeds: {GamePlay.NumberOfPickedSeeds}
+
+Player 1 Score: {GamePlay.PlayerOne.Score}
+Player 2 Score: {GamePlay.PlayerTwo.Score}
+
+{Board.Holes[11]}	{Board.Holes[10]}	{Board.Holes[9]}	{Board.Holes[8]}	{Board.Holes[7]}	{Board.Holes[6]}
+{Board.Holes[0]}	{Board.Holes[1]}	{Board.Holes[2]}	{Board.Holes[3]}	{Board.Holes[4]}	{Board.Holes[5]}
+
+		");
     }
 }
 
