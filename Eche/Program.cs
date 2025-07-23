@@ -33,7 +33,7 @@ Pick a side of the board and capture the most seeds.
 _How to play_
 Choose a side of the game board and pick any hole on your side with at least one seed to get started.
 		
-Enter '1' to select the top row or '2' to select the bottom row
+Enter '1' to be playerOne or '2' to be PlayerTwo
 ");
 		
 		string playerInput = Console.ReadLine()!;
