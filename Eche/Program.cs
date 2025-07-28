@@ -132,6 +132,16 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 	| Player Two |
 	+------------+";
 
+    static readonly string HumanButton = @"
+	+-------+
+	| Human |
+	+-------+";
+
+    static readonly string AIButton = @"
+	+----+
+	| AI |
+	+----+";
+
     static readonly string backButton = @"
 	+---------+
 	| Go Back |
@@ -143,7 +153,7 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 
     private static string[] initMenu = { startButton, exitMenu };
     private static string[] playerMenu = { playerOneButton, playerTwoButton, backButton };
-	private static string[] opponentMenu = { "Human", "AI", backButton };
+	private static string[] opponentMenu = { HumanButton, AIButton, backButton };
 
     public static void Begin()
 	{
@@ -152,17 +162,14 @@ use your arrow keys to navigate and enter button to select or enter the hole num
             switch (GamePlay.Status)
             {
                 case GameStatus.INITIALIZED:
-                    Console.WriteLine($@"{homeScreen}");
                     MenuAction(initMenu, ref selectedInit, InitMenuAction);
                     break;
 
                 case GameStatus.PLAYER_SELECTION:
-                    Console.WriteLine($@"{homeScreen}");
                     MenuAction(playerMenu, ref selectedPlayer, PlayerMenuAction);
 					break;
 
-                case GameStatus.OPPONENT_SELECTION:
-                    Console.WriteLine($@"{homeScreen}");
+                case GameStatus.OPPONENT_SELECTION: 
                     MenuAction(opponentMenu, ref selectedOpponent, OpponentMenuAction);
 					break;
 
@@ -190,13 +197,15 @@ use your arrow keys to navigate and enter button to select or enter the hole num
     }
 
     private static void MenuAction(string[] Menu, ref int selection, Action<int> action)
-    {
-        Console.Clear();
+    { 
         ConsoleKeyInfo key;
 
 		do
-		{
-			for (int i = 0; i <= Menu.Length; i++)
+		{ 
+            Console.Clear();
+            Console.WriteLine($@"{homeScreen}");
+
+            for (int i = 0; i <= Menu.Length; i++)
 			{
 				if (i == selection)
 				{
@@ -235,20 +244,66 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 
 	private static void InitMenuAction(int selection)
 	{
-
+		if (selection == 0) 
+		{
+			GamePlay.Status = GameStatus.PLAYER_SELECTION;
+			return;
+		}
+		else
+		{
+			Environment.Exit(0);		
+		}
 	}
 
 	private static void PlayerMenuAction(int selection)
 	{
-        Player PlayerOne = new Player(0);
-		Player PlayerTwo = new Player(1);
-        GamePlay.PlayerOne = PlayerOne;
-        GamePlay.PlayerTwo = PlayerTwo;
+		switch(selection)
+		{
+			case 0:
+                GamePlay.PlayerOne = new Human(0); 
+				return;
+
+			case 1:
+                GamePlay.PlayerTwo = new Human(1);
+                return;
+			default:
+				GamePlay.Status = GameStatus.INITIALIZED;
+				return;
+        } 
     }
 
 	private static void OpponentMenuAction(int selection)
 	{
+		switch (selection)
+		{
+			case 0:
+				if(GamePlay.PlayerOne != null)
+				{
+					GamePlay.PlayerTwo = new Human(1);
+				}
+				else
+				{
+					GamePlay.PlayerOne = new Human(0);
+				}
+				GamePlay.Status = GameStatus.PLAY;
+				return;
 
+			case 1:
+                if (GamePlay.PlayerOne != null)
+                {
+                    GamePlay.PlayerTwo = new AI(1);
+                }
+                else
+                {
+                    GamePlay.PlayerOne = new AI(0);
+                }
+                GamePlay.Status = GameStatus.PLAY;
+                return;
+
+			default:
+				GamePlay.Status = GameStatus.PLAYER_SELECTION;
+				return;
+        }
 	}
 }
 
@@ -293,7 +348,6 @@ public class Human : Player
         string newHoleInput = Console.ReadLine()!;
         bool _ = int.TryParse(newHoleInput, out newHole);
 
-		// error
         GamePlay.PlayGame(index, newHole);
     }
 }
@@ -307,40 +361,48 @@ public static class GamePlay
 	public static int CurrentHole { get; set; }
     public static GameStatus Status { get; set; }
 
-	/* Outdated
-    public static void PlayGame(Player currentPlayer, int hole)
-	{
-		CurrentHole = hole;
-		CurrentPlayer = currentPlayer;
+    public static void PlayGame(int playerIndex, int chosenHole)
+    {
+        CurrentHole = chosenHole;
 
-		NumberOfPickedSeeds = Board.Holes[hole];
+        NumberOfPickedSeeds = Board.Holes[chosenHole];
 
-		if(NumberOfPickedSeeds == 0)
-		{
-			Console.WriteLine("Invalid move. Hole is empty"); 
-			return;
-		}
+        if (NumberOfPickedSeeds == 0)
+        {
+            Console.WriteLine("Invalid move. Hole is empty");
+            return;
+        }
 
-		Board.Holes[hole] = 0;
-		Console.WriteLine($"You picked {NumberOfPickedSeeds} seeds from hole {hole}");
+        Board.Holes[chosenHole] = 0;
 
-		if (currentPlayer.Index == 0 && hole >= 0 && hole < 6)
-		{
-			Move(currentPlayer, NumberOfPickedSeeds, hole++);
-		}
-		else if (currentPlayer.Index == 1 && hole > 5 && hole <= 11)
-		{
-			Move(currentPlayer, NumberOfPickedSeeds, hole++);
-		}
+        if (Status == GameStatus.PLAY)
+        {
+            Console.WriteLine($"You picked {NumberOfPickedSeeds} seeds from hole {chosenHole}");
+
+            if (chosenHole >= 0 && chosenHole < 6)
+            {
+                Move(playerIndex, NumberOfPickedSeeds, ++chosenHole);
+            }
+        }
 		else
 		{
-			Console.WriteLine("Invalid move. Select from your side");
-		}
-		
-		return;
-	}
-	
-	private static void Move(Player currentPlayer, int numberOfPickedSeeds, int hole)
+            if (playerIndex == 0 && chosenHole >= 0 && chosenHole < 6)
+            {
+                Move(playerIndex, NumberOfPickedSeeds, ++chosenHole);
+            }
+            else if (playerIndex == 1 && chosenHole > 5 && chosenHole <= 11)
+            {
+                Move(playerIndex, NumberOfPickedSeeds, ++chosenHole);
+            }
+            else
+            {
+				// manage state
+                Console.WriteLine("Invalid move. Select from your side");
+            }
+        } 
+    }
+
+    private static void Move(Player currentPlayer, int numberOfPickedSeeds, int hole)
 	{
 		NumberOfPickedSeeds = numberOfPickedSeeds;
 		while (NumberOfPickedSeeds > 0) 
@@ -376,15 +438,14 @@ public static class GamePlay
             Move(currentPlayer, NumberOfPickedSeeds, hole);
 		}
 
-		Status = GameStatus.PLAY_COMPLETE;
 	}
-	*/
 
-	public static void PlayGame(int playerIndex, int chosenHole)
+	private static void Move(int currentPlayerIndex, int numberOfPickedSeeds, int hole) 
 	{
 
-	}
-
+        Status = GameStatus.PLAY_COMPLETE;
+        return;
+    }
 }
 
 public static class GameState
