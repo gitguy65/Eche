@@ -5,9 +5,7 @@ public class Program
 {
     public static void Main()
 	{
-		Board.InitializeBoard();
-		
-		
+		Board.InitializeBoard(); 
 		StartGame.Begin();
 	}
 }
@@ -205,18 +203,18 @@ use your arrow keys to navigate and enter button to select or enter the hole num
             Console.Clear();
             Console.WriteLine($@"{homeScreen}");
 
-            for (int i = 0; i <= Menu.Length; i++)
+            for (int i = 0; i < Menu.Length; i++)
 			{
 				if (i == selection)
 				{
 					Console.ForegroundColor = ConsoleColor.White;
 					Console.BackgroundColor = ConsoleColor.Black;
-					Console.WriteLine($@"> {Menu[i]}");
+					Console.WriteLine($@" {Menu[i]}");
 					Console.ResetColor();
 				}
 				else
 				{
-					Console.WriteLine($@". {Menu[i]}");
+					Console.WriteLine($@" {Menu[i]}");
 				}
 			}
 
@@ -249,10 +247,7 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 			GamePlay.Status = GameStatus.PLAYER_SELECTION;
 			return;
 		}
-		else
-		{
-			Environment.Exit(0);		
-		}
+		Environment.Exit(0);
 	}
 
 	private static void PlayerMenuAction(int selection)
