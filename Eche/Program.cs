@@ -15,13 +15,13 @@ public static class StartGame
 {
     static readonly string homeScreen = @"
 
-        ########   ######   ##   ##   ########
-        ##         ##       ##   ##   ##
-        ######     ##       #######   ########
-        ######     ##       ##   ##   ########
-        ##         ##       ##   ##   ##
-        ########   ######   ##   ##   ########
 
+        ########   ######   ##   ##   ########
+        ##         ##       ##   ##   ##
+        ######     ##       #######   ######
+        ######     ##       ##   ##   ######
+        ##         ##       ##   ##   ##
+        ########   ######   ##   ##   ########
 
         -- About --
         A board game consisting of 12 holes with 4 inital seeds each and played by two players. 
@@ -37,7 +37,6 @@ public static class StartGame
         -- Hole Selection --
         11	10	9	8	7	6
         0	1	2	3	4	5
-
 ";
 
     static readonly string startButton = @"
@@ -95,19 +94,22 @@ public static class StartGame
             {
                 case GameStatus.INITIALIZED:
 					renderObject.Clear();
-					renderObject.AddRange(homeScreen, initMenu);
+					renderObject.Add(homeScreen);
+                    renderObject.Add(initMenu);
                     MenuAction(initMenu, ref selectedInit, InitMenuAction);
                     break;
 
                 case GameStatus.PLAYER_SELECTION:
                     renderObject.Clear();
-                    renderObject.AddRange(homeScreen, playerMenu);
+                    renderObject.Add(homeScreen);
+                    renderObject.Add(playerMenu);
                     MenuAction(playerMenu, ref selectedPlayer, PlayerMenuAction);
 					break;
 
                 case GameStatus.OPPONENT_SELECTION:
                     renderObject.Clear();
-                    renderObject.AddRange(homeScreen, opponentMenu);
+                    renderObject.AddRange(homeScreen);
+                    renderObject.Add(opponentMenu);
                     MenuAction(opponentMenu, ref selectedOpponent, OpponentMenuAction);
 					break;
 
@@ -153,7 +155,7 @@ public static class StartGame
 					break;
 
 				case ConsoleKey.DownArrow:
-					selection = selection >= Menu.Length ? Menu.Length : ++selection;
+					selection = selection >= Menu.Length - 1 ? Menu.Length - 1 : ++selection;
 					break;
 
 				case ConsoleKey.Enter:
@@ -223,8 +225,10 @@ public static class StartGame
                 return;
 
 			default:
-				GamePlay.Status = GameStatus.PLAYER_SELECTION;
-				return;
+				GamePlay.Status = GameStatus.PLAYER_SELECTION; 
+                GamePlay.PlayerOne = null;
+                GamePlay.PlayerTwo = null;
+                return;
         }
 	}
 
