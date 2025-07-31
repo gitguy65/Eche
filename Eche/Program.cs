@@ -15,30 +15,28 @@ public static class StartGame
 {
     static readonly string homeScreen = @"
 
-		+------+        +----+	  +--+    +--+    +-------+
-		|  ____+	  /  ____+	  |  |    |  |    |  _____+
-		| |		     /  /		  |  |    |  |    |  |
-		|  ----+	/  /		  |  |____|  |    |  |----+
-		|  ____+    |  |		  |  ______  |    |  _____+
-		| |	      	|  |		  |  |	  |  |    |  | 
-		| |____+	\  \_____+	  |  |	  |  |    |  |____+
-		| 	   |  	 \		 |	  |  |    |  |    |		  |	   
-		+------+      +------+	  +--+    +--+    +-------+
+        ########   ######   ##   ##   ########
+        ##         ##       ##   ##   ##
+        ######     ##       #######   ########
+        ######     ##       ##   ##   ########
+        ##         ##       ##   ##   ##
+        ########   ######   ##   ##   ########
 
 
-			-- About --
-		a board game consisting of 12 holes with 4 inital seeds each and played by two players. it involves mathematical foresight.
-
-			-- How to Play --
-		use your arrow keys to navigate and enter button to select or enter the hole number
-
-			-- Holes --
-		4	4	4	4	4	4
-		4	4	4	4	4	4
-		
-			-- Hole Selection --
-		11	10	9	8	7	6
-		0	1	2	3	4	5
+        -- About --
+        A board game consisting of 12 holes with 4 inital seeds each and played by two players. 
+        It involves mathematical foresight.
+        
+        -- How to Play --
+        Use your arrow keys to navigate and enter button to select or enter the hole number
+        
+        -- Holes --
+        4	4	4	4	4	4
+        4	4	4	4	4	4
+        
+        -- Hole Selection --
+        11	10	9	8	7	6
+        0	1	2	3	4	5
 
 ";
 
@@ -175,6 +173,7 @@ public static class StartGame
 			GamePlay.Status = GameStatus.PLAYER_SELECTION;
 			return;
 		}
+
 		Environment.Exit(0);
 	}
 
