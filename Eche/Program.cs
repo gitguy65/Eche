@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Security.Cryptography;
 
 public class Program
@@ -12,75 +13,6 @@ public class Program
 	
 public static class StartGame
 {
-    /*
-	public static void Begin()
-	{
-	
-		Console.WriteLine(@"
-Éché
-An exciting board game
-		
-4	4	4	4	4	4
-4	4	4	4	4	4
-		
-11	10	9	8	7	6
-0	1	2	3	4	5
-		
-Pick a side of the board and capture the most seeds.
-		
-_How to play_
-Choose a side of the game board and pick any hole on your side with at least one seed to get started.
-		
-Enter '1' to be playerOne or '2' to be PlayerTwo
-");
-		
-		string playerInput = Console.ReadLine()!;
-		
-		if (playerInput == "1") 
-		{
-			Console.WriteLine("You are player one");
-			Console.WriteLine("Pick any hole from 0 - 5");
-			string startHoleInput = Console.ReadLine()!;
-
-			if(int.TryParse(startHoleInput, out int startHole))
-			{
-				if(startHole >= 0 && startHole < 6)
-				{
-
-                    GamePlay.PlayGame(GamePlay.PlayerOne, startHole);
-                }
-            }
-			else 
-			{
-				Console.WriteLine("Invalid move");
-                GamePlay.PlayGame(GamePlay.PlayerOne, startHole);
-            }
-		}
-		
-		else if (playerInput == "2")
-		{
-			Console.WriteLine("You are player two");
-			Console.WriteLine("Pick any hole from 6 - 11");
-			string startHoleInput = Console.ReadLine()!;
-			
-			if(int.TryParse(startHoleInput, out int startHole))
-			{
-				if(startHole >= 6 && startHole < 12)
-				{
-                    GamePlay.PlayGame(GamePlay.PlayerTwo, startHole);
-                }
-            }
-        }
-
-        else
-		{
-			Console.WriteLine("Invalid player");
-            throw new Exception();
-        }
-    }
-
-	*/
-
     static readonly string homeScreen = @"
 
 		+------+        +----+	  +--+    +--+    +-------+
@@ -94,19 +26,19 @@ Enter '1' to be playerOne or '2' to be PlayerTwo
 		+------+      +------+	  +--+    +--+    +-------+
 
 
-	-- About --
-a board game consisting of 12 holes with 4 inital seeds each and played by two players. it involves mathematical foresight.
+			-- About --
+		a board game consisting of 12 holes with 4 inital seeds each and played by two players. it involves mathematical foresight.
 
-	-- How to Play --
-use your arrow keys to navigate and enter button to select or enter the hole number
+			-- How to Play --
+		use your arrow keys to navigate and enter button to select or enter the hole number
 
-	-- Holes --
-4	4	4	4	4	4
-4	4	4	4	4	4
+			-- Holes --
+		4	4	4	4	4	4
+		4	4	4	4	4	4
 		
-	-- Hole Selection --
-11	10	9	8	7	6
-0	1	2	3	4	5
+			-- Hole Selection --
+		11	10	9	8	7	6
+		0	1	2	3	4	5
 
 ";
 
@@ -145,13 +77,17 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 	| Go Back |
 	+---------+";
 
+
     private static int selectedInit = 0;
     private static int selectedPlayer = 0;
     private static int selectedOpponent = 0;
 
+
     private static string[] initMenu = { startButton, exitMenu };
     private static string[] playerMenu = { playerOneButton, playerTwoButton, backButton };
 	private static string[] opponentMenu = { HumanButton, AIButton, backButton };
+
+	private static List<object> renderObject = []; 
 
     public static void Begin()
 	{
@@ -160,20 +96,27 @@ use your arrow keys to navigate and enter button to select or enter the hole num
             switch (GamePlay.Status)
             {
                 case GameStatus.INITIALIZED:
+					renderObject.Clear();
+					renderObject.AddRange(homeScreen, initMenu);
                     MenuAction(initMenu, ref selectedInit, InitMenuAction);
                     break;
 
                 case GameStatus.PLAYER_SELECTION:
+                    renderObject.Clear();
+                    renderObject.AddRange(homeScreen, playerMenu);
                     MenuAction(playerMenu, ref selectedPlayer, PlayerMenuAction);
 					break;
 
-                case GameStatus.OPPONENT_SELECTION: 
+                case GameStatus.OPPONENT_SELECTION:
+                    renderObject.Clear();
+                    renderObject.AddRange(homeScreen, opponentMenu);
                     MenuAction(opponentMenu, ref selectedOpponent, OpponentMenuAction);
 					break;
 
                 case GameStatus.PLAY:
-
-					break;
+                    renderObject.Clear();
+                    renderObject.AddRange("Starting");
+                    break;
 
                 case GameStatus.PLAYING:
 
@@ -198,25 +141,10 @@ use your arrow keys to navigate and enter button to select or enter the hole num
     { 
         ConsoleKeyInfo key;
 
-		do
-		{ 
+        do
+        { 
             Console.Clear();
-            Console.WriteLine($@"{homeScreen}");
-
-            for (int i = 0; i < Menu.Length; i++)
-			{
-				if (i == selection)
-				{
-					Console.ForegroundColor = ConsoleColor.White;
-					Console.BackgroundColor = ConsoleColor.Black;
-					Console.WriteLine($@" {Menu[i]}");
-					Console.ResetColor();
-				}
-				else
-				{
-					Console.WriteLine($@" {Menu[i]}");
-				}
-			}
+			Render(renderObject);
 
 			key = Console.ReadKey(true);
 
@@ -237,7 +165,7 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 			}
 		}
 		while (key.Key != ConsoleKey.Escape);
-
+		return;
     }
 
 	private static void InitMenuAction(int selection)
@@ -300,6 +228,52 @@ use your arrow keys to navigate and enter button to select or enter the hole num
 				return;
         }
 	}
+
+	// 
+
+	private static void Render(List<object> renderObject)
+	{
+        int selection = 0;
+
+        foreach (var item in renderObject) 
+		{ 
+			if (item is string str)
+			{
+				Console.WriteLine($@"{item}");
+			}
+			else if (item is string[] arr)
+			{
+				GameStatus status = GamePlay.Status;
+
+				switch(status)
+				{
+					case GameStatus.INITIALIZED:
+						selection = selectedInit;
+						break;
+					case GameStatus.PLAYER_SELECTION:
+						selection = selectedPlayer;
+						break;
+					case GameStatus.OPPONENT_SELECTION:
+						selection = selectedOpponent;
+						break;
+				}
+				
+				for (int i = 0; i < arr.Length; i++) 
+				{	if(i == selection)
+					{
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        Console.BackgroundColor = ConsoleColor.White;
+                        Console.WriteLine($@" {arr[i]}");
+                        Console.ResetColor();
+                    }
+					else
+					{
+                        Console.WriteLine($@" {arr[i]}");
+                    }
+                }
+			}
+		}	
+	}
 }
 
 public static class Board
@@ -325,6 +299,8 @@ public abstract class Player
 		Index = index;
 		Score = 0;
 	}
+
+	public abstract void Play();
 }
 
 public class AI : Player
@@ -333,17 +309,27 @@ public class AI : Player
     {
 
     }
+
+    public override void Play()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class Human : Player
 {
-	private int newHole;
+	private int selectedHole;
     public Human(int index) : base(index)
     {
-        string newHoleInput = Console.ReadLine()!;
-        bool _ = int.TryParse(newHoleInput, out newHole);
+        
+    }
 
-        GamePlay.PlayGame(index, newHole);
+    public override void Play()
+    {
+        string input = Console.ReadLine()!;
+        bool _ = int.TryParse(input, out selectedHole);
+
+        GamePlay.PlayGame(Index, selectedHole);
     }
 }
 
@@ -355,10 +341,13 @@ public static class GamePlay
 	public static int NumberOfPickedSeeds { get; private set; }
 	public static int CurrentHole { get; set; }
     public static GameStatus Status { get; set; }
+	public static string? ErrorMessage { get; private set; }
+
 
     public static void PlayGame(int playerIndex, int chosenHole)
     {
         CurrentHole = chosenHole;
+        ErrorMessage = "";
 
         NumberOfPickedSeeds = Board.Holes[chosenHole];
 
@@ -391,52 +380,56 @@ public static class GamePlay
             }
             else
             {
-				// manage state
-                Console.WriteLine("Invalid move. Select from your side");
+				ErrorMessage = "Invalid move. Select a non empty hole from your side";
+				Status = GameStatus.GAME_ERROR;
+				return;
             }
         } 
     }
 
-    private static void Move(Player currentPlayer, int numberOfPickedSeeds, int hole)
+	private static void Move(int currentPlayerIndex, int numberOfPickedSeeds, int hole) 
 	{
-		NumberOfPickedSeeds = numberOfPickedSeeds;
-		while (NumberOfPickedSeeds > 0) 
+        NumberOfPickedSeeds = numberOfPickedSeeds;
+
+		if (currentPlayerIndex == 0)
 		{
-			hole++;
+			CurrentPlayer = PlayerOne;
+		} else
+		{
+			CurrentPlayer = PlayerTwo;
+		}
+
+        while (NumberOfPickedSeeds > 0)
+        {
+            hole++;
             hole = hole == 12 ? 0 : hole;
-			CurrentHole = hole;
+            CurrentHole = hole;
 
             if (NumberOfPickedSeeds == 1 && Board.Holes[hole] == 3)
             {
-				currentPlayer.Score++; 
-				Board.Holes[hole] = 0;
-				NumberOfPickedSeeds = 0;
+                CurrentPlayer.Score++;
+                Board.Holes[hole] = 0;
+                NumberOfPickedSeeds = 0;
 
                 GameState.CheckGame();
                 GameState.DisplayBoard();
                 break;
-			}
-			else if (NumberOfPickedSeeds == 1 && Board.Holes[hole] > 0)
-			{
-				NumberOfPickedSeeds = Board.Holes[hole] + 1;
-				Board.Holes[hole] = 0; 
-			}
-
-			else
-			{
+            }
+            else if (NumberOfPickedSeeds == 1 && Board.Holes[hole] > 0)
+            {
+                NumberOfPickedSeeds = Board.Holes[hole] + 1;
+                Board.Holes[hole] = 0;
+            }
+            else
+            {
                 Board.Holes[hole]++;
                 NumberOfPickedSeeds--;
             }
 
             GameState.CheckGame();
             GameState.DisplayBoard();
-            Move(currentPlayer, NumberOfPickedSeeds, hole);
-		}
-
-	}
-
-	private static void Move(int currentPlayerIndex, int numberOfPickedSeeds, int hole) 
-	{
+            Move(currentPlayerIndex, NumberOfPickedSeeds, hole);
+        }
 
         Status = GameStatus.PLAY_COMPLETE;
         return;
@@ -505,8 +498,6 @@ Player 2 Score: {GamePlay.PlayerTwo.Score}
         }
     }
 }
-
-
 
 public enum GameStatus 
 { 
