@@ -108,7 +108,7 @@ public static class StartGame
 
                 case GameStatus.OPPONENT_SELECTION:
                     renderObject.Clear();
-                    renderObject.AddRange(homeScreen);
+                    renderObject.Add(homeScreen);
                     renderObject.Add(opponentMenu);
                     MenuAction(opponentMenu, ref selectedOpponent, OpponentMenuAction);
 					break;
@@ -142,11 +142,11 @@ public static class StartGame
         ConsoleKeyInfo key;
 
         do
-        { 
+        {
             Console.Clear();
-			Render(renderObject);
+            Render(renderObject); 
 
-			key = Console.ReadKey(true);
+            key = Console.ReadKey(true);
 
             switch (key.Key)
 			{
