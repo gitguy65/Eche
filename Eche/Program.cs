@@ -406,18 +406,18 @@ public static class GamePlay
 
             if (chosenHole >= 0 && chosenHole < 6)
             {
-                Move(playerIndex, NumberOfPickedSeeds, chosenHole++);
+                Move(playerIndex, NumberOfPickedSeeds, chosenHole);
             }
         }
 		else
 		{
             if (playerIndex == 0 && chosenHole >= 0 && chosenHole < 6)
             {
-                Move(playerIndex, NumberOfPickedSeeds, chosenHole++);
+                Move(playerIndex, NumberOfPickedSeeds, chosenHole);
             }
             else if (playerIndex == 1 && chosenHole > 5 && chosenHole <= 11)
             {
-                Move(playerIndex, NumberOfPickedSeeds, chosenHole++);
+                Move(playerIndex, NumberOfPickedSeeds, chosenHole);
             }
             else
             {
