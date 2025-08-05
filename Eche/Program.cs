@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
 
 public class Program
 {
@@ -13,9 +14,7 @@ public class Program
 	
 public static class StartGame
 {
-    static readonly string homeScreen = @"
-
-
+    static readonly StringBuilder homeScreen = new StringBuilder(@"
         ########   ######   ##   ##   ########
         ##         ##       ##   ##   ##
         ######     ##       #######   ######
@@ -23,6 +22,9 @@ public static class StartGame
         ##         ##       ##   ##   ##
         ########   ######   ##   ##   ########
 
+");
+
+    static readonly string description = @"
         -- About --
         A board game consisting of 12 holes with 4 inital seeds each and played by two players. 
         It involves mathematical foresight.
@@ -31,12 +33,12 @@ public static class StartGame
         Use your arrow keys to navigate and enter button to select or enter the hole number
         
         -- Holes --
-        4	4	4	4	4	4
-        4	4	4	4	4	4
+        4   4   4   4   4   4
+        4   4   4   4   4   4
         
         -- Hole Selection --
-        11	10	9	8	7	6
-        0	1	2	3	4	5
+        11  10  9   8   7   6
+        0   1   2   3   4   5
 ";
 
     static readonly string startButton = @"
@@ -95,6 +97,7 @@ public static class StartGame
                 case GameStatus.INITIALIZED:
 					renderObject.Clear();
 					renderObject.Add(homeScreen);
+                    renderObject.Add(description);
                     renderObject.Add(initMenu);
                     MenuAction(initMenu, ref selectedInit, InitMenuAction);
                     break;
@@ -102,6 +105,7 @@ public static class StartGame
                 case GameStatus.PLAYER_SELECTION:
                     renderObject.Clear();
                     renderObject.Add(homeScreen);
+                    renderObject.Add("Who are you");
                     renderObject.Add(playerMenu);
                     MenuAction(playerMenu, ref selectedPlayer, PlayerMenuAction);
 					break;
@@ -109,13 +113,35 @@ public static class StartGame
                 case GameStatus.OPPONENT_SELECTION:
                     renderObject.Clear();
                     renderObject.Add(homeScreen);
+                    renderObject.Add("Select your opponent");
                     renderObject.Add(opponentMenu);
                     MenuAction(opponentMenu, ref selectedOpponent, OpponentMenuAction);
 					break;
 
                 case GameStatus.PLAY:
                     renderObject.Clear();
-                    renderObject.AddRange("Starting");
+                    renderObject.Add(homeScreen);
+                    renderObject.Add("Starting...");
+                    GamePlay.CurrentPlayer.Index = GamePlay.PlayerOne.Index;
+
+                    Console.Clear();
+                    Render(renderObject);
+                    Thread.Sleep(500);
+
+                    if(GamePlay.PlayerOne is Human human)
+                    {
+                        GameState.DisplayBoard();
+                        renderObject.Clear();
+                        renderObject.Add("Pick a hole from 0 - 5");
+                        Render(renderObject);
+                        human.Play();
+                    }
+                    else
+                    {
+
+                    }
+                    
+                    GamePlay.Status = GameStatus.PLAYING;
                     break;
 
                 case GameStatus.PLAYING:
@@ -180,15 +206,17 @@ public static class StartGame
 	}
 
 	private static void PlayerMenuAction(int selection)
-	{
-		switch(selection)
+	{ 
+        switch (selection)
 		{
 			case 0:
                 GamePlay.PlayerOne = new Human(0); 
-				return;
+                GamePlay.Status = GameStatus.OPPONENT_SELECTION;
+                return;
 
 			case 1:
                 GamePlay.PlayerTwo = new Human(1);
+                GamePlay.Status = GameStatus.OPPONENT_SELECTION;
                 return;
 			default:
 				GamePlay.Status = GameStatus.INITIALIZED;
@@ -198,7 +226,7 @@ public static class StartGame
 
 	private static void OpponentMenuAction(int selection)
 	{
-		switch (selection)
+        switch (selection)
 		{
 			case 0:
 				if(GamePlay.PlayerOne != null)
@@ -209,7 +237,9 @@ public static class StartGame
 				{
 					GamePlay.PlayerOne = new Human(0);
 				}
-				GamePlay.Status = GameStatus.PLAY;
+
+                GamePlay.CurrentPlayer = GamePlay.PlayerOne;
+                GamePlay.Status = GameStatus.PLAY;
 				return;
 
 			case 1:
@@ -221,13 +251,15 @@ public static class StartGame
                 {
                     GamePlay.PlayerOne = new AI(0);
                 }
+
+                GamePlay.CurrentPlayer = GamePlay.PlayerOne;
                 GamePlay.Status = GameStatus.PLAY;
                 return;
 
-			default:
-				GamePlay.Status = GameStatus.PLAYER_SELECTION; 
+			case 2:
                 GamePlay.PlayerOne = null;
                 GamePlay.PlayerTwo = null;
+				GamePlay.Status = GameStatus.PLAYER_SELECTION; 
                 return;
         }
 	}
@@ -236,10 +268,14 @@ public static class StartGame
 
 	private static void Render(List<object> renderObject)
 	{
-        int selection = 0;
+        int selection = 0; 
 
         foreach (var item in renderObject) 
 		{ 
+            if (item is StringBuilder sb)
+            {
+                Console.WriteLine(sb.ToString());
+            }
 			if (item is string str)
 			{
 				Console.WriteLine($@"{item}");
@@ -276,7 +312,8 @@ public static class StartGame
                 }
 			}
 		}	
-	}
+    }
+
 }
 
 public static class Board
@@ -329,6 +366,7 @@ public class Human : Player
 
     public override void Play()
     {
+        
         string input = Console.ReadLine()!;
         bool _ = int.TryParse(input, out selectedHole);
 
@@ -368,18 +406,18 @@ public static class GamePlay
 
             if (chosenHole >= 0 && chosenHole < 6)
             {
-                Move(playerIndex, NumberOfPickedSeeds, ++chosenHole);
+                Move(playerIndex, NumberOfPickedSeeds, chosenHole++);
             }
         }
 		else
 		{
             if (playerIndex == 0 && chosenHole >= 0 && chosenHole < 6)
             {
-                Move(playerIndex, NumberOfPickedSeeds, ++chosenHole);
+                Move(playerIndex, NumberOfPickedSeeds, chosenHole++);
             }
             else if (playerIndex == 1 && chosenHole > 5 && chosenHole <= 11)
             {
-                Move(playerIndex, NumberOfPickedSeeds, ++chosenHole);
+                Move(playerIndex, NumberOfPickedSeeds, chosenHole++);
             }
             else
             {
@@ -449,8 +487,9 @@ public static class GameState
 
     public static void DisplayBoard()
 	{
+        string player = GamePlay.CurrentPlayer.Index == 0 ? "Player 1" : "Player 2";
         Console.WriteLine($@"
-Current Player: {GamePlay.CurrentPlayer.Index}
+Current Player: {player} 
 Seeds: {GamePlay.NumberOfPickedSeeds}
 
 Player 1 Score: {GamePlay.PlayerOne.Score}
@@ -459,7 +498,7 @@ Player 2 Score: {GamePlay.PlayerTwo.Score}
 {Board.Holes[11]}	{Board.Holes[10]}	{Board.Holes[9]}	{Board.Holes[8]}	{Board.Holes[7]}	{Board.Holes[6]}
 {Board.Holes[0]}	{Board.Holes[1]}	{Board.Holes[2]}	{Board.Holes[3]}	{Board.Holes[4]}	{Board.Holes[5]}
 
-		");
+");
     }
 
 	private static void CheckGameStatus()
