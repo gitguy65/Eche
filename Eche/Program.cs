@@ -90,13 +90,16 @@ public static class StartGame
 
     public static void Begin()
 	{
+        //
+        GamePlay.Status = GameStatus.INITIALIZED;
+
         while (true)
         {
             switch (GamePlay.Status)
             {
                 case GameStatus.INITIALIZED:
 					renderObject.Clear();
-					renderObject.Add(homeScreen);
+                    renderObject.Add(new StringBuilder(homeScreen.ToString()));
                     renderObject.Add(description);
                     renderObject.Add(initMenu);
                     MenuAction(initMenu, ref selectedInit, InitMenuAction);
@@ -276,28 +279,20 @@ public static class StartGame
             {
                 Console.WriteLine(sb.ToString());
             }
-			if (item is string str)
+			else if (item is string str)
 			{
 				Console.WriteLine($@"{item}");
 			}
 			else if (item is string[] arr)
 			{
-				GameStatus status = GamePlay.Status;
+                selection = GamePlay.Status switch
+                {
+                    GameStatus.INITIALIZED => selectedInit,
+                    GameStatus.PLAYER_SELECTION => selectedPlayer,
+                    GameStatus.OPPONENT_SELECTION => selectedOpponent
+                };
 
-				switch(status)
-				{
-					case GameStatus.INITIALIZED:
-						selection = selectedInit;
-						break;
-					case GameStatus.PLAYER_SELECTION:
-						selection = selectedPlayer;
-						break;
-					case GameStatus.OPPONENT_SELECTION:
-						selection = selectedOpponent;
-						break;
-				}
-				
-				for (int i = 0; i < arr.Length; i++) 
+                for (int i = 0; i < arr.Length; i++) 
 				{	if(i == selection)
 					{
                         Console.ForegroundColor = ConsoleColor.Black;
