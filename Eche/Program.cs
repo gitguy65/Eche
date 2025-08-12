@@ -108,7 +108,7 @@ public static class StartGame
                 case GameStatus.PLAYER_SELECTION:
                     renderObject.Clear();
                     renderObject.Add(homeScreen);
-                    renderObject.Add("Who are you");
+                    renderObject.Add("Which do you prefer");
                     renderObject.Add(playerMenu);
                     MenuAction(playerMenu, ref selectedPlayer, PlayerMenuAction);
 					break;
@@ -289,7 +289,8 @@ public static class StartGame
                 {
                     GameStatus.INITIALIZED => selectedInit,
                     GameStatus.PLAYER_SELECTION => selectedPlayer,
-                    GameStatus.OPPONENT_SELECTION => selectedOpponent
+                    GameStatus.OPPONENT_SELECTION => selectedOpponent,
+                    _ => 0
                 };
 
                 for (int i = 0; i < arr.Length; i++) 
@@ -392,39 +393,30 @@ public static class GamePlay
             Console.WriteLine("Invalid move. Hole is empty");
             return;
         }
-
-        Board.Holes[chosenHole] = 0;
-
-        if (Status == GameStatus.PLAY)
+       
+        if (playerIndex == 0 && chosenHole >= 0 && chosenHole < 6)
         {
-            Console.WriteLine($"You picked {NumberOfPickedSeeds} seeds from hole {chosenHole}");
-
-            if (chosenHole >= 0 && chosenHole < 6)
-            {
-                Move(playerIndex, NumberOfPickedSeeds, chosenHole);
-            }
+            Move(playerIndex, NumberOfPickedSeeds, chosenHole);
         }
-		else
-		{
-            if (playerIndex == 0 && chosenHole >= 0 && chosenHole < 6)
-            {
-                Move(playerIndex, NumberOfPickedSeeds, chosenHole);
-            }
-            else if (playerIndex == 1 && chosenHole > 5 && chosenHole <= 11)
-            {
-                Move(playerIndex, NumberOfPickedSeeds, chosenHole);
-            }
-            else
-            {
-				ErrorMessage = "Invalid move. Select a non empty hole from your side";
-				Status = GameStatus.GAME_ERROR;
-				return;
-            }
+        else if (playerIndex == 1 && chosenHole > 5 && chosenHole <= 11)
+        {
+            Move(playerIndex, NumberOfPickedSeeds, chosenHole);
+        }
+        else
+        {
+            ErrorMessage = "Invalid move. Select a non empty hole from your side";
+            Status = GameStatus.GAME_ERROR;
+            return;
         } 
+
+        Status = GameStatus.PLAY_COMPLETE;
+        return;
     }
 
 	private static void Move(int currentPlayerIndex, int numberOfPickedSeeds, int hole) 
 	{
+        Status = GameStatus.PLAYING;
+
         NumberOfPickedSeeds = numberOfPickedSeeds;
 
 		if (currentPlayerIndex == 0)
@@ -498,7 +490,37 @@ Player 2 Score: {GamePlay.PlayerTwo.Score}
 
 	private static void CheckGameStatus()
 	{
+        bool isGameOver = true;
 
+        for(int i = 0; i < Board.Holes.Length / 2 - 1; i++)
+        {
+            if (Board.Holes[i] > 0 || Board.Holes[i + 6] > 0)
+            {
+                isGameOver = false;
+                break;
+            }
+        }
+
+        if (isGameOver)
+        {
+            if(GamePlay.PlayerOne.Score == GamePlay.PlayerTwo.Score)
+            {
+                Console.WriteLine($"It is a draw: {GamePlay.PlayerOne.Score}");
+
+            }
+            else if(GamePlay.PlayerOne.Score > GamePlay.PlayerTwo.Score)
+            {
+                Console.WriteLine("Player One wins");
+            }
+            else
+            {
+                Console.WriteLine("Player Two wins");
+            }
+             
+            GamePlay.Status = GameStatus.GAME_OVER;
+        }
+
+        return;
 	}
 
 	private static void CheckGameScore()
